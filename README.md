@@ -60,13 +60,15 @@ Full pinned list in [`requirements.txt`](requirements.txt).
 
 ```
 .
-├── main_notebook.ipynb          
+├── main_notebook.ipynb
 ├── README.md
-├── requirements.txt             
+├── requirements.txt
 ├── .gitignore
 ├── checkpoints/
-│   ├── checkpoint_1.ipynb       
-│   └── checkpoint_2.ipynb      
+│   ├── checkpoint_1.ipynb
+│   └── checkpoint_2.ipynb
+└── data/
+    └── README.md            # download instructions for Reviews.csv.zip
 ```
 
 ## Results summary

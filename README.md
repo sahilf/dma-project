@@ -1,170 +1,79 @@
-# Amazon Fine Food Reviews - Data Mining Project
+# Detecting Suspicious Reviews on Amazon Fine Food Data
 
-## Project Overview
+An unsupervised data mining project that detects fake or low-quality product reviews on the Amazon Fine Food corpus (~394k reviews, 1999–2012) by combining three independent signals — text-rating sentiment mismatch, network authority, and topic modeling. Showing that the signals converge on the same kind of review.
 
-This project explores **Text Mining** and **Graph Mining** techniques on the Amazon Fine Food Reviews dataset. The primary objective is to investigate the depth of text mining through a purely analytical and data-driven lens, exploring what level of insight, patterns, and actionable results can be reached by relying predominantly on data mining core principles.
+## Quick links
 
-## Dataset Information
+- **Start here:** [`main_notebook.ipynb`](main_notebook.ipynb) — the curated story of the project.
+- **Project video (investor pitch):** [Watch on YouTube](https://www.youtube.com/watch?v=nge9tk2TOzk)
+- **Dataset:** Amazon Fine Food Reviews ([Kaggle](https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews/data)).
+- **Checkpoints:** [`checkpoints/checkpoint_1.ipynb`](checkpoints/checkpoint_1.ipynb) · [`checkpoints/checkpoint_2.ipynb`](checkpoints/checkpoint_2.ipynb)
 
-**Dataset Name:** Amazon Fine Food Reviews
+## Research questions
 
-**Source:** [Kaggle - Amazon Fine Food Reviews](https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews/data)
+The project is organized around three connected questions, each attacking a different dimension of review authenticity:
 
-**Description:** Collection of over 500,000 reviews covering consumer feedback on food products, ideal for studying the relationship between natural language and numerical satisfaction scores.
+1. **RQ1 Semantic alignment.** Can sentiment-rating mismatch flag fake reviews? Authentic reviews align text tone with the star rating; fake reviews tend to contradict themselves.
+2. **RQ2 Social position.** Does a reviewer's place in the user-product network predict helpfulness better than how much they write? In other words, does network authority beat raw volume?
+3. **RQ3 Latent themes.** What topics do reviews fall into, do those topics differ across user types, and do certain topics correlate with helpfulness?
 
-**Dataset Characteristics:**
-- **Original Size:** 568,454 reviews
-- **Cleaned Size:** 393,645 unique reviews
-- **Unique Users:** 256,059
-- **Unique Products:** 67,488
-- **Time Span:** 1999-2012
-- **Columns:** 10 (Text, Summary, Score, UserId, ProductId, Time, etc.)
+The hypothesis tying them together: a fake review might be able to fake one of these dimensions, but faking all three consistently is much harder.
 
-## Key Features
+## Data
 
-### Data Mining Tasks
-- **Text Mining:** Natural language analysis, bi-gram extraction, sentiment-score correlation
-- **Graph Mining:** User-product bipartite graph construction
-- **Anomaly Detection:** Identifying review manipulation and sentiment-rating disconnects
-- **Frequent Itemsets:** Product relationship patterns
+- **Source:** [Amazon Fine Food Reviews](https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews/data) on Kaggle.
+- **Placement:** download `Reviews.csv.zip` from Kaggle and place it either at the repo root or in a `data/` folder — the notebook handles either location.
+- **Preprocessing:** deduplication on (UserId, ProfileName, Text), user segmentation by review count (Amateur / Active / Expert), sentence-level VADER sentiment scoring, and lemmatization plus domain-stopword removal for LDA. Full details in the notebook.
 
-### Beyond-Course Techniques
-- **Topic Modeling:** Latent Dirichlet Allocation (LDA) for automated theme discovery
-- **Transformer-based Embeddings:** BERT/RoBERTa for semantic understanding
+## How to reproduce
 
-## Installation & Requirements
+The project was developed locally with Python 3.13 in a virtual environment.
 
-### Dependencies
-```python
-pandas
-matplotlib
-seaborn
-google.colab (for Colab environment)
-```
-
-### Installation
 ```bash
-pip install pandas matplotlib seaborn
+git clone <this repo URL>
+cd dma-project
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-## Project Structure
+Then download the dataset and open [`main_notebook.ipynb`](main_notebook.ipynb) in VS Code or Jupyter. Run the cells top to bottom.
+
+The notebook also runs in Google Colab — upload the notebook, install the requirements with `!pip install -r requirements.txt`, and either upload `Reviews.csv.zip` to the working directory or mount Google Drive.
+
+## Key dependencies
+
+| Package | Version |
+|---|---|
+| Python | 3.13.3 |
+| pandas | 3.0.2 |
+| numpy | 2.4.4 |
+| scikit-learn | 1.8.0 |
+| networkx | 3.6.1 |
+| nltk | 3.9.4 |
+| matplotlib | 3.10.8 |
+| seaborn | 0.13.2 |
+
+Full pinned list in [`requirements.txt`](requirements.txt).
+
+## Repo structure
 
 ```
-dma-project/
-├── 436000918_ProjectCheckPoint1.ipynb    # Main analysis notebook
-├── README.md                              # This file
-└── Reviews.csv                            # Dataset (not included - download from Kaggle)
+.
+├── main_notebook.ipynb          
+├── README.md
+├── requirements.txt             
+├── .gitignore
+├── checkpoints/
+│   ├── checkpoint_1.ipynb       
+│   └── checkpoint_2.ipynb      
 ```
 
-## Usage
+## Results summary
 
-### Running the Notebook
+- **RQ1.** A three-signal consensus filter (Isolation Forest residual outlier + word-direction mismatch + not legitimately mixed) flagged **11,232 reviews (2.85%)** as anomalous — a rate that lines up with external estimates of fake-review prevalence.
+- **RQ2.** Reviewer Hub Score correlated with helpfulness at **−0.08**, about **2× the magnitude** of Word Count's **+0.04**, but in the opposite direction from the naive expectation: the most central reviewers write *less* helpful reviews on average.
+- **RQ3.** LDA produced **5 interpretable topics** (shopping, pet food, cooking, generic usage, coffee/tea). Topic distribution is strongly associated with helpfulness (chi-square statistic 468, p ≈ 4e-100).
+- **Cross-method convergence.** The "generic usage" topic from LDA is **+10.1 percentage points more common** among RQ1 anomalies than normal reviews, and **−3.1 percentage points less common** among reviews that received helpful votes. Two independent methods, built from different data — sentiment-rating alignment and word co-occurrence — landed on the same kind of review as suspicious. That convergence is the project's strongest internal-validation finding.
 
-1. **Download the Dataset:**
-   - Visit [Kaggle](https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews/data)
-   - Download `Reviews.csv`
-
-2. **Setup Environment:**
-   ```python
-   # For Google Colab users:
-   from google.colab import drive
-   drive.mount('/content/drive')
-   
-   # Update file path to your Reviews.csv location
-   file_path = '/path/to/Reviews.csv'
-   ```
-
-3. **Run Analysis:**
-   - Execute cells sequentially
-   - Data cleaning removes duplicates and HTML artifacts
-   - Visualizations generate automatically
-
-## Exploratory Data Analysis Findings
-
-### Data Cleaning
-- **Duplicate Removal:** Reduced dataset from 568K to 393K reviews
-- **HTML Tag Stripping:** Removed web formatting artifacts
-- **Helpfulness Validation:** Filtered invalid helpfulness ratios
-- **Temporal Features:** Extracted year and month from Unix timestamps
-
-### Key Insights
-
-1. **Rating Distribution:**
-   - Significant J-curve bias toward 5-star ratings
-   - 1-star reviews are longer and more detailed than 5-star reviews
-
-2. **Review Length vs. Helpfulness:**
-   - Longer reviews (200+ words) receive higher helpfulness ratios
-   - Community values detailed, information-dense content
-
-3. **User Segmentation:**
-   - **Amateur Reviewers (1-2 reviews):** Majority of user base
-   - **Active Reviewers (3-5 reviews):** Moderate engagement
-   - **Very Active Reviewers (5+ reviews):** Small but influential group
-
-4. **Bi-gram Analysis:**
-   - **1-Star Reviews:** "very disappointed", "waste money", "customer service"
-   - **5-Star Reviews:** "highly recommend", "great price", "excellent product"
-
-### Visualizations
-- Chronological distribution of reviews (1999-2012)
-- Score frequency distribution
-- Average word count by review score
-- Helpfulness ratio vs. review length
-- User segmentation distribution
-
-## Research Questions
-
-1. How do specific bi-grams and vocabulary complexity evolve as reviewers gain experience on the platform?
-
-2. Can a bipartite graph-based recommendation system improve accuracy by prioritizing product links established by very active reviewers?
-
-## Hypotheses
-
-- **Helpfulness as Quality Indicator:** Helpfulness Ratio predicts review honesty and depth
-- **User Experience Correlation:** Very active reviewers show stronger sentiment-score alignment
-- **Temporal Anomaly Detection:** Sudden spikes in 5-star reviews with decreased word counts signal potential manipulation
-- **Niche Product Patterns:** Specialty food categories exhibit more complex linguistic patterns
-
-## Data Quality Considerations
-
-### Bias
-- **Rating Distribution Bias:** Heavy skew toward 5-star ratings
-- **Product Variation Duplicates:** Same reviews across product sizes/flavors
-
-### Ethical Considerations
-- Risk of automated sentiment models suppressing valid negative feedback
-- Potential for unfair competitive advantage through review manipulation detection
-
-## Future Directions
-
-- Implement Graph Neural Networks (GNNs) for user-product relationship modeling
-- Apply LDA for automated topic discovery (Taste, Shipping, Packaging)
-- Develop anomaly detection for bot-driven review patterns
-- Construct weighted bipartite graphs for recommendation systems
-
-## Citations
-
-McAuley, J., & Leskovec, J. (2013). *From amateurs to connoisseurs: modeling the evolution of user expertise through online reviews*. WWW 2013.
-
-
-
-
-## License
-
-This project uses publicly available data from Kaggle under Public Domain licensing for academic and research purposes.
-
-## Author
-
-Sahil Fayaz  
-Texas A&M University  
-
-## Acknowledgments
-
-- **Dataset Provider:** Stanford Network Analysis Project (SNAP)
-- **Platform:** Kaggle
-- **AI Assistance:** Gemini (for technical guidance and formatting)
-
----
-
-**Last Updated:** February 2026
+Full analysis, plots, and discussion live in [`main_notebook.ipynb`](main_notebook.ipynb).

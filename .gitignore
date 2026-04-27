@@ -1,0 +1,13 @@
+# Environment
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Data — too large for GitHub, see data/README.md for download instructions
+data/Reviews.csv.zip
+Reviews.csv.zip
+
